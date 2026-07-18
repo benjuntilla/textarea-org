@@ -17,7 +17,6 @@ A _minimalist_ text editor that lives entirely in your browser and stores everyt
 ## Pro tips
 
 - Start your document with `# Title` to set a custom page title
-- Your data lives in localStorage AND the URL. Double the fun!
 - Add a `style` attribute to the `<article>` tag via DevTools. It'll be saved in the URL too!
 
 ## Examples

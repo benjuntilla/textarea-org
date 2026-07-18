@@ -327,10 +327,6 @@
   async function load() {
     try {
       if (location.hash !== '') await set(location.hash)
-      else {
-        await set(localStorage.getItem('hash') ?? '')
-        if (article.textContent) history.replaceState({}, '', await get())
-      }
     } catch (e) {
       article.textContent = ''
       article.removeAttribute('style')
@@ -341,10 +337,6 @@
   async function save() {
     const hash = await get()
     if (location.hash !== hash) history.replaceState({}, '', hash)
-    try {
-      localStorage.setItem('hash', hash)
-    } catch (e) {
-    }
     updateTitle()
   }
 
