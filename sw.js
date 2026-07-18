@@ -1,7 +1,6 @@
-const CACHE_NAME = 'textarea-2026-01-07'
+const CACHE_NAME = 'textarea-2026-07-18'
 const ASSETS = [
   '/',
-  '/qr',
 ]
 
 self.addEventListener('install', (event) => {
