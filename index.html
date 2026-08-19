@@ -54,60 +54,63 @@
     overflow-wrap: break-word;
   }
 
-  .md-h1,
-  .md-h2,
-  .md-h3,
-  .md-h4,
-  .md-h5,
-  .md-h6 {
+  .org-h1,
+  .org-h2,
+  .org-h3,
+  .org-h4,
+  .org-h5,
+  .org-h6 {
     font-weight: 700;
   }
 
-  .md-h1 {
+  .org-h1 {
     font-size: 2em;
   }
 
-  .md-h2 {
+  .org-h2 {
     font-size: 1.5em;
   }
 
-  .md-h3 {
+  .org-h3 {
     font-size: 1.25em;
   }
 
-  .md-h4 {
+  .org-h4 {
     font-size: 1.1em;
   }
 
-  .md-h5 {
+  .org-h5 {
     font-size: 1em;
   }
 
-  .md-h6 {
+  .org-h6 {
     font-size: 0.9em;
   }
 
-  .md-code {
+  .org-code,
+  .org-verbatim,
+  .org-codeblock {
     font-family: monospace;
   }
 
-  .md-codeblock {
-    font-family: monospace;
-  }
-
-  .md-bold {
+  .org-bold {
     font-weight: bold;
   }
 
-  .md-strike {
+  .org-strike {
     text-decoration: line-through;
   }
 
-  .md-italic {
+  .org-italic {
     font-style: italic;
   }
 
-  .md-url {
+  .org-underline {
+    text-decoration: underline;
+  }
+
+  .org-url,
+  .org-link {
     cursor: pointer;
   }
 
@@ -289,7 +292,7 @@
     <svg aria-hidden="true" focusable="false" width="22" height="22">
       <use xlink:href="#icon-save"></use>
     </svg>
-    Save as txt
+    Save as org
   </a>
   <a class="item" href="https://github.com/antonmedv/textarea" target="_blank" role="menuitem">
     <svg aria-hidden="true" focusable="false" width="22" height="22">
@@ -303,7 +306,7 @@
   initUI()
 
   const article = document.querySelector('article')
-  const editor = new Editor(article, parseMarkdown)
+  const editor = new Editor(article, parseOrg)
   article.addEventListener('input', debounce(500, save))
   article.addEventListener('blur', save)
   article.addEventListener('click', event => {
@@ -354,7 +357,8 @@
   }
 
   function updateTitle() {
-    const match = article.textContent.match(/^\n*#(.+)\n/)
+    const text = article.textContent
+    const match = text.match(/^#\+title:[ \t]*(.+)$/im) ?? text.match(/^\*+[ \t]+(.+)$/m)
     document.title = match?.[1] ?? 'Textarea'
   }
 
@@ -421,17 +425,17 @@
     URL.revokeObjectURL(url)
   }
 
-  async function downloadTXT() {
+  async function downloadOrg() {
     updateTitle()
     const text = article.textContent
 
     if ('showSaveFilePicker' in window) {
       try {
         const handle = await showSaveFilePicker({
-          suggestedName: document.title + '.txt',
+          suggestedName: document.title + '.org',
           types: [{
-            description: 'TEXT file',
-            accept: {'text/plain': ['.txt']},
+            description: 'Org file',
+            accept: {'text/plain': ['.org']},
           }],
         })
         const writable = await handle.createWritable()
@@ -447,47 +451,57 @@
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = document.title + '.txt'
+    a.download = document.title + '.org'
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  function parseMarkdown(element) {
+  function parseOrg(element) {
     const input = element.textContent
     const frag = document.createDocumentFragment()
 
     const matchers = [
-      {name: 'md-codeblock', re: /```[^\n]*\n[\s\S]*?\n```/y},
-      {name: 'md-codeblock', re: /~~~[^\n]*\n[\s\S]*?\n~~~/y},
-      {name: 'md-h1', re: /^#[ \t]+[^\n]*$/my},
-      {name: 'md-h2', re: /^##[ \t]+[^\n]*$/my},
-      {name: 'md-h3', re: /^###[ \t]+[^\n]*$/my},
-      {name: 'md-h4', re: /^####[ \t]+[^\n]*$/my},
-      {name: 'md-h5', re: /^#####[ \t]+[^\n]*$/my},
-      {name: 'md-h6', re: /^######[ \t]+[^\n]*$/my},
-      {name: 'md-code', re: /`[^`\n]*`/y},
-      {name: 'md-bold', re: /\*\*[^*\n]+?\*\*/y},
-      {name: 'md-bold', re: /__[^_\n]+?__/y},
-      {name: 'md-strike', re: /~~[^~\n]+?~~/y},
-      {name: 'md-italic', re: /\*[^*\n]+?\*/y},
-      {name: 'md-italic', re: /_[^_\n]+?_/y},
-      {name: 'md-url', re: /https?:\/\/[^\s<>()\[\]{}"'`]+/y},
+      {name: 'org-codeblock', re: /#\+begin_(\w+)[^\n]*\n[\s\S]*?\n[ \t]*#\+end_\1/iy},
+      {name: 'org-h1', re: /^\*[ \t]+[^\n]*$/my},
+      {name: 'org-h2', re: /^\*{2}[ \t]+[^\n]*$/my},
+      {name: 'org-h3', re: /^\*{3}[ \t]+[^\n]*$/my},
+      {name: 'org-h4', re: /^\*{4}[ \t]+[^\n]*$/my},
+      {name: 'org-h5', re: /^\*{5}[ \t]+[^\n]*$/my},
+      {name: 'org-h6', re: /^\*{6,}[ \t]+[^\n]*$/my},
+      {name: 'org-code', re: /~[^~\s](?:[^~\n]*[^~\s])?~/y, emphasis: true},
+      {name: 'org-verbatim', re: /=[^=\s](?:[^=\n]*[^=\s])?=/y, emphasis: true},
+      {name: 'org-bold', re: /\*[^*\s](?:[^*\n]*[^*\s])?\*/y, emphasis: true},
+      {name: 'org-italic', re: /\/[^/\s](?:[^/\n]*[^/\s])?\//y, emphasis: true},
+      {name: 'org-underline', re: /_[^_\s](?:[^_\n]*[^_\s])?_/y, emphasis: true},
+      {name: 'org-strike', re: /\+[^+\s](?:[^+\n]*[^+\s])?\+/y, emphasis: true},
+      {name: 'org-link', re: /\[\[[^\]\n]+?\](\[[^\]\n]+?\])?\]/y},
+      {name: 'org-url', re: /https?:\/\/[^\s<>()\[\]{}"'`]+/y},
     ]
 
-    const specials = ['`', '~', '*', '#', '_', 'h']
+    // Org emphasis only counts next to whitespace/punctuation, so
+    // /usr/local/bin and snake_case stay plain.
+    const emphasisPre = /[\s\-('"{]/
+    const emphasisPost = /[\s\-.,;:!?'")}\[\]]/
+
+    const specials = ['~', '=', '*', '/', '_', '+', '#', '[', 'h']
 
     let i = 0
     while (i < input.length) {
       let matched = false
       for (const m of matchers) {
+        if (m.emphasis && i > 0 && !emphasisPre.test(input[i - 1])) continue
         m.re.lastIndex = i
         const res = m.re.exec(input)
         if (res && res.index === i) {
           const raw = res[0]
-          if (m.name === 'md-url') {
+          if (m.emphasis) {
+            const post = input[i + raw.length]
+            if (post !== undefined && !emphasisPost.test(post)) continue
+          }
+          if (m.name === 'org-url' || m.name === 'org-link') {
             const a = document.createElement('a')
-            a.className = 'md-url'
-            a.href = raw
+            a.className = m.name
+            a.href = m.name === 'org-link' ? raw.match(/^\[\[([^\]]+)\]/)[1] : raw
             a.textContent = raw
             a.target = '_blank'
             a.rel = 'noopener noreferrer'
@@ -570,7 +584,7 @@
     })
     saveAsText.addEventListener('click', event => {
       event.preventDefault()
-      downloadTXT()
+      downloadOrg()
       hideMenu()
     })
   }

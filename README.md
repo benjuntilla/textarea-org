@@ -16,7 +16,7 @@ A _minimalist_ text editor that lives entirely in your browser and stores everyt
 
 ## Pro tips
 
-- Start your document with `# Title` to set a custom page title
+- Add a `#+title: My title` line (or start with a `* Heading`) to set a custom page title
 - Add a `style` attribute to the `<article>` tag via DevTools. It'll be saved in the URL too!
 
 ## Examples
