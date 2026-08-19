@@ -130,8 +130,20 @@
     cursor: pointer;
   }
 
+  #warning {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #c62828;
+    color: #fff;
+    font: 14px system-ui;
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+
 </style>
 <article contenteditable="plaintext-only" spellcheck autofocus></article>
+<div id="warning" hidden>Note too big to save in the URL</div>
 <script>
   const article = document.querySelector('article')
   const editor = new Editor(article, parseOrg)
@@ -189,7 +201,16 @@
 
   async function save() {
     const hash = await get()
-    if (location.hash !== hash) history.replaceState({}, '', hash)
+    const warning = document.querySelector('#warning')
+    try {
+      // ponytail: 1M chars stays under known browser URL limits (~2MB);
+      // if notes ever really get this big, move them to KV storage instead
+      if (hash.length > 1_000_000) throw new Error('too big')
+      if (location.hash !== hash) history.replaceState({}, '', hash)
+      warning.hidden = true
+    } catch (e) {
+      warning.hidden = false
+    }
     updateTitle()
   }
 
