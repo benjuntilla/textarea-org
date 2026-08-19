@@ -312,6 +312,28 @@
   article.addEventListener('click', event => {
     if (event.target.tagName === 'A') window.open(event.target.getAttribute('href'), '_blank')
   })
+  article.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' && event.key !== 'Backspace') return
+    if (event.metaKey || event.ctrlKey || event.altKey) return
+    const sel = getSelection()
+    if (!sel.rangeCount || !sel.isCollapsed) return
+    const range = sel.getRangeAt(0).cloneRange()
+    range.setStart(article, 0)
+    const action = autolistAction(article.textContent, range.toString().length, event.key)
+    if (!action) return
+    if (action.insert) {
+      // execCommand('insertText') turns \n into <br>, which textContent drops.
+      // Let the native Enter insert the line break, then add the bullet.
+      article.addEventListener('input', e => {
+        if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') {
+          document.execCommand('insertText', false, action.insert.slice(1))
+        }
+      }, {once: true})
+      return
+    }
+    event.preventDefault()
+    for (let n = action.deleteBack ?? 0; n > 0; n--) document.execCommand('delete')
+  })
   addEventListener('DOMContentLoaded', load)
   addEventListener('hashchange', load)
   addEventListener('load', () => new MutationObserver(save).observe(article, {attributeFilter: ['style']}))
@@ -454,6 +476,28 @@
     a.download = document.title + '.org'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  // org-autolist: Enter continues a list item (bullets, numbers, checkboxes),
+  // Enter on an empty item ends the list, Backspace right after a bullet
+  // erases it and joins with the previous line.
+  function autolistAction(text, offset, key) {
+    const lineStart = text.lastIndexOf('\n', offset - 1) + 1
+    const nl = text.indexOf('\n', offset)
+    const lineEnd = nl === -1 ? text.length : nl
+    const line = text.slice(lineStart, lineEnd)
+    const m = line.match(/^([ \t]*)([-+]|\d+[.)])([ \t]+)(\[[ xX-]\][ \t]*)?/)
+    if (!m) return null
+    const len = m[0].length
+    if (key === 'Backspace') {
+      if (offset !== lineStart + len) return null
+      return {deleteBack: len + (lineStart > 0 ? 1 : 0)}
+    }
+    if (offset < lineStart + len) return null
+    if (line.length === len) return {deleteBack: offset - lineStart}
+    const n = parseInt(m[2], 10)
+    const marker = isNaN(n) ? m[2] : (n + 1) + m[2].slice(String(n).length)
+    return {insert: '\n' + m[1] + marker + m[3] + (m[4] ? '[ ] ' : '')}
   }
 
   function parseOrg(element) {
