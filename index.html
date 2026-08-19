@@ -210,6 +210,8 @@
       warning.hidden = true
     } catch (e) {
       warning.hidden = false
+      // Clear the hash instead of keeping a stale smaller version
+      if (location.hash !== '') history.replaceState({}, '', location.pathname)
     }
     updateTitle()
   }

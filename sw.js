@@ -1,4 +1,4 @@
-const CACHE_NAME = 'textarea-2026-08-19-11'
+const CACHE_NAME = 'textarea-2026-08-19-12'
 const ASSETS = [
   '/',
   '/fonts/crimson-pro.woff2',
