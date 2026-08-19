@@ -1,8 +1,8 @@
-const CACHE_NAME = 'textarea-2026-08-19-5'
+const CACHE_NAME = 'textarea-2026-08-19-6'
 const ASSETS = [
   '/',
-  '/fonts/fraunces.woff2',
-  '/fonts/fraunces-italic.woff2',
+  '/fonts/crimson-pro.woff2',
+  '/fonts/crimson-pro-italic.woff2',
 ]
 
 self.addEventListener('install', (event) => {
