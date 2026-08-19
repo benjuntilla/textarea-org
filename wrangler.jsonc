@@ -1,0 +1,12 @@
+{
+  "name": "textarea-org",
+  "compatibility_date": "2026-08-19",
+  "account_id": "8713e8e60ff7068367b27fefc3f670d7",
+  "assets": {
+    "directory": "./",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "scratch.benjuntilla.com", "custom_domain": true }
+  ]
+}
