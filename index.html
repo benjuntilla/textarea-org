@@ -180,7 +180,7 @@
   addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.code === 'KeyS') {
       e.preventDefault()
-      downloadHTML()
+      downloadOrg()
     }
   })
   if ('serviceWorker' in navigator) {
@@ -261,24 +261,21 @@
     }
   }
 
-  async function downloadHTML() {
+  async function downloadOrg() {
     updateTitle()
-    const doc = document.documentElement.cloneNode(true)
-    doc.querySelectorAll('script').forEach(s => s.remove())
-    doc.querySelector('article').removeAttribute('contenteditable')
-    const html = '<!DOCTYPE html>\n' + doc.outerHTML
+    const text = article.textContent
 
     if ('showSaveFilePicker' in window) {
       try {
         const handle = await showSaveFilePicker({
-          suggestedName: document.title + '.html',
+          suggestedName: document.title + '.org',
           types: [{
-            description: 'HTML file',
-            accept: {'text/html': ['.html']},
+            description: 'Org file',
+            accept: {'text/plain': ['.org']},
           }],
         })
         const writable = await handle.createWritable()
-        await writable.write(html)
+        await writable.write(text)
         await writable.close()
         return
       } catch (e) {
@@ -286,11 +283,11 @@
       }
     }
 
-    const blob = new Blob([html], {type: 'text/html'})
+    const blob = new Blob([text], {type: 'text/plain'})
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = document.title + '.html'
+    a.download = document.title + '.org'
     a.click()
     URL.revokeObjectURL(url)
   }
