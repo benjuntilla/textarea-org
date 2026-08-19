@@ -159,7 +159,7 @@
       }, {once: true})
       return
     }
-    event.preventDefault()
+    if (!action.keepDefault) event.preventDefault()
     for (let n = action.deleteBack ?? 0; n > 0; n--) document.execCommand('delete')
   })
   addEventListener('DOMContentLoaded', load)
@@ -290,7 +290,10 @@
       return {deleteBack: len + (lineStart > 0 ? 1 : 0)}
     }
     if (offset < lineStart + len) return null
-    if (line.length === len) return {deleteBack: offset - lineStart}
+    // Empty item: erase the bullet. At the end of the document also let the
+    // native Enter through — a lone trailing \n does not render as a line,
+    // so the caret would look stuck otherwise.
+    if (line.length === len) return {deleteBack: offset - lineStart, keepDefault: lineEnd === text.length}
     const n = parseInt(m[2], 10)
     const marker = isNaN(n) ? m[2] : (n + 1) + m[2].slice(String(n).length)
     return {insert: '\n' + m[1] + marker + m[3] + (m[4] ? '[ ] ' : '')}
