@@ -142,7 +142,7 @@
   })
   article.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== 'Backspace') return
-    if (event.metaKey || event.ctrlKey || event.altKey) return
+    if (event.metaKey || event.ctrlKey || event.altKey || event.isComposing) return
     const sel = getSelection()
     if (!sel.rangeCount || !sel.isCollapsed) return
     const range = sel.getRangeAt(0).cloneRange()
@@ -318,7 +318,7 @@
       {name: 'org-underline', re: /_[^_\s](?:[^_\n]*[^_\s])?_/y, emphasis: true},
       {name: 'org-strike', re: /\+[^+\s](?:[^+\n]*[^+\s])?\+/y, emphasis: true},
       {name: 'org-link', re: /\[\[[^\]\n]+?\](\[[^\]\n]+?\])?\]/y},
-      {name: 'org-url', re: /https?:\/\/[^\s<>()\[\]{}"'`]+/y},
+      {name: 'org-url', re: /https?:\/\/[^\s<>()\[\]{}"'`]+(?<![.,;:!?])/y},
     ]
 
     // Org emphasis only counts next to whitespace/punctuation, so
